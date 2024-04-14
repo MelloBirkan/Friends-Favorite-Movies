@@ -10,52 +10,57 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+  @Query(sort: \Movie.title) private var movies: [Movie]
 
     var body: some View {
         NavigationSplitView {
             List {
-                ForEach(items) { item in
+                ForEach(movies) { movie in
                     NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
+                        MovieDetail(movie: movie)
                     } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+                        Text(movie.title)
                     }
                 }
                 .onDelete(perform: deleteItems)
             }
+            .navigationTitle("Movies")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
                 }
                 ToolbarItem {
-                    Button(action: addItem) {
+                    Button(action: addMovie) {
                         Label("Add Item", systemImage: "plus")
                     }
                 }
             }
         } detail: {
-            Text("Select an item")
+            Text("Select a movie")
+                .navigationTitle("Movie")
         }
     }
 
-    private func addItem() {
+
+    private func addMovie() {
         withAnimation {
-            let newItem = Item(timestamp: Date())
+            let newItem = Movie(title: "New Movie", releaseDate: .now)
             modelContext.insert(newItem)
         }
     }
 
+
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
             for index in offsets {
-                modelContext.delete(items[index])
+                modelContext.delete(movies[index])
             }
         }
     }
 }
 
+
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+    .modelContainer(SampleData.shared.modelContainer)
 }
